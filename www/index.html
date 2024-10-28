@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Notes</title>
+    <link rel="stylesheet" href="uikit-3.21.12/css/uikit.min.css" />
+    <script src="uikit-3.21.12/js/uikit.min.js"></script>
+    <link rel="stylesheet" href="table.css" />
+</head>
+<body>
+    <table>
+        <thead><tr><th>Pages</th></tr></thead>
+<tbody>
+<tr><td><a href="aee_2291_how_to_talk_politics_and_keep_friends_even_two_weeks_before_the_election.html">AEE 2291 How to Talk Politics and Keep Friends Even Two Weeks Before the Election</a></td></tr>
+<tr><td><a href="aee_2292_you_cant_go_wrong_with_these_halloween_songs.html">AEE 2292 You Cant Go Wrong with These Halloween Songs</a></td></tr>
+<tr><td><a href="aee_2293_head_for_greatness_with_these_5_phrasal_verbs_.html">AEE 2293 Head For Greatness With These 5 Phrasal Verbs</a></td></tr>
+<tr><td><a href="aee_how_to_talk_about_scents_that_you_love_in_english.html">AEE How to Talk About Scents that You Love in English</a></td></tr>
+</tbody>
+
+    </table>
+
+    <!-- Modal for AWS S3 Settings -->
+    <div id="s3-modal" class="uk-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body">
+            <h2 class="uk-modal-title">AWS S3 Settings</h2>
+            <form id="s3-settings-form">
+                <div class="uk-margin">
+                    <label class="uk-form-label" for="access-key">Access Key</label>
+                    <input class="uk-input" type="text" id="access-key" required>
+                </div>
+                <div class="uk-margin">
+                    <label class="uk-form-label" for="secret-key">Secret Access Key</label>
+                    <input class="uk-input" type="text" id="secret-key" required>
+                </div>
+                <div class="uk-margin">
+                    <label class="uk-form-label" for="bucket-name">Bucket Name</label>
+                    <input class="uk-input" type="text" id="bucket-name" required>
+                </div>
+                <div class="uk-margin">
+                    <label class="uk-form-label" for="region">Region</label>
+                    <input class="uk-input" type="text" id="region" value="ap-northeast-1" required>
+                </div>
+                <button class="uk-button uk-button-primary" type="submit">Save</button>
+                <button class="uk-modal-close uk-button uk-button-default" type="button">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Button to open the modal -->
+    <button class="uk-button uk-button-default" uk-toggle="target: #s3-modal">Open AWS S3 Settings</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bucketName = localStorage.getItem('aws_bucket_name');
+            const region = localStorage.getItem('aws_region');
+            // set values from local storage
+            if (bucketName) document.getElementById('bucket-name').value = bucketName 
+            if (region) document.getElementById('region').value = region
+        });
+
+        document.getElementById('s3-settings-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Get the input values
+            const accessKey = document.getElementById('access-key').value;
+            const secretKey = document.getElementById('secret-key').value;
+            const bucketName = document.getElementById('bucket-name').value;
+            const region = document.getElementById('region').value;
+
+            // Save settings to local storage
+            localStorage.setItem('aws_access_key', accessKey);
+            localStorage.setItem('aws_secret_key', secretKey);
+            localStorage.setItem('aws_bucket_name', bucketName);
+            localStorage.setItem('aws_region', region);
+
+            // Close the modal
+            UIkit.modal('#s3-modal').hide();
+        });
+    </script>
+</body>
+</html>

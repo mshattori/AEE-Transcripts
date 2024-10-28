@@ -1,0 +1,42 @@
+body {
+    padding: 5px;
+}
+
+@media (max-width: 600px) {
+    body {
+        font-size: 1.3rem;
+    }
+}
+
+.highlight {
+    background-color: yellow;
+    margin: 0px 3px; /* Add margin to separate adjacent highlights */
+}
+
+/* Fixed button container at the bottom of the screen */
+.fixed-buttons {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border-top: 1px solid #ccc;
+    box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+}
+
+.fixed-buttons button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+}
+
+.fixed-buttons button:hover {
+    background-color: #0056b3;
+}
