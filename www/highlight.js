@@ -1,6 +1,6 @@
-const storageKey = `highlights_${window.location.pathname}`; // Namespace by document path
-
-const scrollPositionKey = `scrollPosition_${window.location.pathname}`;
+const uniqueId = window.location.pathname.slice(1).replaceAll('\/', '_'); // Skip the first slash and replace all the remaining slashes.
+const storageKey = `highlights/${uniqueId}`; // Namespace by document path
+const scrollPositionKey = `scrollPosition_${uniqueId}`;
 
 let useS3Storage = false;
 let bucketName = '';
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.querySelector('#mark-button').addEventListener('touchstart', (event) => {                                                                                                        
         event.preventDefault();
-        highlightSelection();                                                                                                                                                                          
+        markSelection();                                                                                                                                                                          
     });
     document.querySelector('#unmark-button').addEventListener('touchstart', (event) => {
         event.preventDefault();
@@ -45,22 +45,49 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // Function to handle the highlighting process
-function highlightSelection() {
+function markSelection() {
     console.log('Highlighting selection');
     let selection = window.getSelection();
     if (selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);  // Save the selected range
-        // Create a new span element
-        let span = document.createElement('span');
-        span.className = 'highlight';
-        
-        try {
+        let range = selection.getRangeAt(0);  // Save the selected range
+        range = trimRange(range); // Trim the range
+        if (range) {
+            // Create a new span element
+            let span = document.createElement('span');
+            span.className = 'highlight';
+            // Surround the trimmed range with the span
             range.surroundContents(span);
             saveHighlights();
-        } catch (error) {
-            console.error("Error highlighting text:", error);
         }
     }
+}
+
+function trimRange(range) {
+    let selectedText = range.toString().trim(); // Trim whitespace from the selected text
+    if (selectedText.length === 0) {
+        return null;
+    }
+    if (selectedText === range.toString()) {
+        return range; // No trimming needed
+    }
+    // Create new offsets
+    let startOffset = range.startOffset;
+    let endOffset = range.endOffset;
+
+    // Adjust the range to reflect the trimmed text
+    if (startOffset > 0) {
+        startOffset = range.startContainer.textContent.indexOf(selectedText);
+    }
+    if (endOffset < range.endContainer.textContent.length) {
+        endOffset = startOffset + selectedText.length;
+    }
+
+    // Create a new range with the adjusted offsets
+    let newRange = document.createRange();
+    newRange.setStart(range.startContainer, startOffset);
+    newRange.setEnd(range.endContainer, endOffset);
+
+    return newRange;
 }
 
 function unmarkSelection() {
