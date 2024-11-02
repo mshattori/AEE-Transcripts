@@ -276,7 +276,7 @@ function loadHighlights() {
                 console.log('Highlights data loaded from S3');
                 highlightRecords = JSON.parse(data.Body.toString());
             }
-            applyHighlights(highlightTexts);
+            applyHighlights(highlightRecords);
         });
     } else {
         // Load from local storage if S3 is not used
