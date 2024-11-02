@@ -64,12 +64,12 @@ function markSelection() {
         let range = selection.getRangeAt(0);
         // To avoid nested or overlapping highlights, check if the selected range is single node
         if (range.startContainer !== range.endContainer || range.startContainer.nodeType != Node.TEXT_NODE) {
-            alert('Overlapping or nested highlights are not allowed.');
+            showAlert('Overlapping or nested highlights are not allowed.');
             return;
         }
         // Check if the selected range is already highlighted
         if (isHighlightSpan(range.startContainer.parentElement)) {
-            alert('Selected text is already highlighted.');
+            showAlert('Selected text is already highlighted.');
             return;
         }
         range = trimRange(range); // Trim the range
@@ -120,20 +120,20 @@ function unmarkSelection() {
         // points to the previous text, with the startOffset at the end of the previous text.
         // If there is no previous text, startContainer === endContainer.
         if (!isHighlightSpan(range.endContainer.parentElement)) {
-            alert(`Selected text is not highlighted: "${range.toString()}"`);
+            showAlert(`Selected text is not highlighted: "${range.toString()}"`);
             return;
         }
         let span = range.endContainer.parentElement;
         if (range.startContainer !== range.endContainer) {
             let start = range.startContainer;
             if (start.nodeType !== Node.TEXT_NODE || start.textContent.length !== range.startOffset) {
-                alert(`Selected wrong range: "${range.toString()}"`);
+                showAlert(`Selected wrong range: "${range.toString()}"`);
                 return;
             }
         }
         let parent = span.parentElement;
         if (!isParagraph(parent)) {
-            alert(`Unexpected parent: "${parent.outerHTML}"`);
+            showAlert(`Unexpected parent: "${parent.outerHTML}"`);
             return;
         }
         span.classList.remove('highlight');
@@ -257,7 +257,7 @@ function applyHighlightTexts(highlightTexts) {
 function exportMarkedText() {
     let highlights = document.querySelectorAll('.highlight');
     if (highlights.length === 0) {
-        alert('No highlighted text to export.');
+        showAlert('No highlighted text to export.');
         return;
     }
 
@@ -275,4 +275,15 @@ function exportMarkedText() {
 
     // Trigger the download
     link.click();
+}
+
+// Show UiKit notification
+// type: primary, success, warning, danger
+function showAlert(message, type = 'danger') {
+    UIkit.notification({
+        message: message,
+        status: type,
+        pos: 'top-center',
+        timeout: 7000
+    });
 }
