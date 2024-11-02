@@ -1,6 +1,6 @@
-const uniqueId = window.location.pathname.slice(1).replaceAll('\/', '_'); // Skip the first slash and replace all the remaining slashes.
-const storageKey = `highlights/${uniqueId}`; // Namespace by document path
-const scrollPositionKey = `scrollPosition_${uniqueId}`;
+const uniqueId = window.location.pathname.slice(1) // Skip the first slash and replace all the remaining slashes.
+const storageKey = `${uniqueId}/highlights`; // Namespace by document path
+const scrollPositionKey = `${uniqueId}/scroll-position`;
 
 let useS3Storage = false;
 let bucketName = '';
@@ -40,9 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // Save scroll position when the page is hidden
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-        localStorage.setItem(scrollPositionKey, window.scrollY);
+        savePosition();
     }
 });
+document.addEventListener('pagehide', (event) => {
+    if (event.persisted) {
+        savePosition();
+    }
+});
+document.addEventListener('beforeunload', (event) => {
+    savePosition();
+});
+
+function savePosition() {
+    localStorage.setItem(scrollPositionKey, window.scrollY);
+}
 
 function isSpan(node) {
     return (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'span');
@@ -189,9 +201,11 @@ function unmarkSelection() {
 function saveHighlights() {
     let highlights = document.querySelectorAll('.highlight');
     let highlightData = Array.from(highlights).map(span => {
-        let range = document.createRange();
-        range.selectNodeContents(span);
-        return span.textContent;
+        return {
+            text: span.textContent,
+            paragraph: span.closest('p').textContent,
+            offset: calculateTextOffset(span)
+        };
     });
 
     // Save highlights to local storage
@@ -218,6 +232,32 @@ function saveHighlights() {
     }
 }
 
+function getTextNodesBefore(elem) {
+    let nodes = [];
+    let walker = document.createTreeWalker(
+        elem.parentElement,     // root element
+        NodeFilter.SHOW_TEXT,   // text node
+        null,   // optional filter
+        false   // entity reference expansion
+    );
+
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node === elem || elem.contains(node)) {
+            break;
+        }
+        nodes.push(node);
+    }
+    return nodes;
+}
+
+function calculateTextOffset(elem) {
+    let previousNodes = getTextNodesBefore(elem);
+    let textBefore = previousNodes.map(node => node.textContent).join('');
+
+    return textBefore.length;
+}
+
 // Load highlights from local storage or S3
 function loadHighlights() {
     // Check if using S3 storage and if the bucket name is set
@@ -228,28 +268,75 @@ function loadHighlights() {
         };
         const s3 = new AWS.S3();
         s3.getObject(params, (err, data) => {
-            let highlightTexts;
+            let highlightRecords;
             if (err) {
                 console.log('No highlights data in S3:', err);
-                highlightTexts = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                highlightRecords = JSON.parse(localStorage.getItem(storageKey) || '[]');
             } else {
                 console.log('Highlights data loaded from S3');
-                highlightTexts = JSON.parse(data.Body.toString());
+                highlightRecords = JSON.parse(data.Body.toString());
             }
-            applyHighlightTexts(highlightTexts);
+            applyHighlights(highlightTexts);
         });
     } else {
         // Load from local storage if S3 is not used
-        let highlightTexts = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        applyHighlightTexts(highlightTexts);
+        let highlightRecords = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        applyHighlights(highlightRecords);
     }
 }
 
-function applyHighlightTexts(highlightTexts) {
-    highlightTexts.forEach(text => {
-        let content = document.body.innerHTML;
-        let highlightedContent = content.replace(new RegExp(`(${text})`, 'g'), '<span class="highlight">$1</span>');
-        document.body.innerHTML = highlightedContent;
+function applyHighlights(records) {
+    const paragraphs = document.querySelectorAll('p');
+
+    records.forEach(record => {
+        const { paragraph, text: targetText, offset: targetOffset } = record;
+
+        for (const p of paragraphs) {
+            if (p.textContent !== paragraph) continue;
+
+            let walker = document.createTreeWalker(
+                p,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            let currentOffset = 0;
+            let node;
+
+            // Traverse text nodes until we find the correct position
+            while (node = walker.nextNode()) {
+                const nodeText = node.textContent;
+                const nodeLength = nodeText.length;
+
+                // Check if the highlight position is within this text node
+                if (currentOffset <= targetOffset && targetOffset < currentOffset + nodeLength) {
+                    // Skip if this text is already highlighted
+                    if (isHighlightSpan(node.parentElement)) {
+                        break; // Useless to continue
+                    }
+                    let relativeOffset = targetOffset - currentOffset;
+                    if (nodeText.substring(relativeOffset, relativeOffset + targetText.length) !== targetText) {
+                        console.error(`Text mismatch: text="${targetText}", offset=${targetOffset}, paragraph="${paragraph}"`);
+                        break; // Useless to continue
+                    }
+                    // Create a range for the text to highlight
+                    let range = document.createRange();
+                    range.setStart(node, relativeOffset);
+                    range.setEnd(node, relativeOffset + targetText.length);
+                    // Create and apply the highlight span
+                    let span = document.createElement('span');
+                    span.className = 'highlight';
+
+                    try {
+                        range.surroundContents(span);
+                        break; // Successfully applied highlight
+                    } catch (e) {
+                        console.error('Failed to apply highlight:', e);
+                    }
+                }
+                currentOffset += nodeText.length;
+            }
+        }
     });
     saveHighlights();
 }

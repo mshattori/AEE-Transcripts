@@ -13,6 +13,7 @@
     <table>
         <thead><tr><th>Pages</th></tr></thead>
 <tbody>
+<tr><td><a href="aee_0000_test.html">AEE 0000 TEST</a></td></tr>
 <tr><td><a href="aee_2291_how_to_talk_politics_and_keep_friends_even_two_weeks_before_the_election.html">AEE 2291 How to Talk Politics and Keep Friends Even Two Weeks Before the Election</a></td></tr>
 <tr><td><a href="aee_2292_you_cant_go_wrong_with_these_halloween_songs.html">AEE 2292 You Cant Go Wrong with These Halloween Songs</a></td></tr>
 <tr><td><a href="aee_2293_head_for_greatness_with_these_5_phrasal_verbs_.html">AEE 2293 Head For Greatness With These 5 Phrasal Verbs</a></td></tr>
@@ -28,11 +29,11 @@
             <form id="s3-settings-form">
                 <div class="uk-margin">
                     <label class="uk-form-label" for="access-key">Access Key</label>
-                    <input class="uk-input" type="text" id="access-key" required>
+                    <input class="uk-input" type="password" id="access-key" required>
                 </div>
                 <div class="uk-margin">
                     <label class="uk-form-label" for="secret-key">Secret Access Key</label>
-                    <input class="uk-input" type="text" id="secret-key" required>
+                    <input class="uk-input" type="password" id="secret-key" required>
                 </div>
                 <div class="uk-margin">
                     <label class="uk-form-label" for="bucket-name">Bucket Name</label>
@@ -53,9 +54,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const accessKey = localStorage.getItem('aws_access_key');
+            const secretKey = localStorage.getItem('aws_secret_key');
             const bucketName = localStorage.getItem('aws_bucket_name');
             const region = localStorage.getItem('aws_region');
             // set values from local storage
+            if (accessKey) document.getElementById('access-key').value = accessKey
+            if (secretKey) document.getElementById('secret-key').value = secretKey
             if (bucketName) document.getElementById('bucket-name').value = bucketName 
             if (region) document.getElementById('region').value = region
         });
