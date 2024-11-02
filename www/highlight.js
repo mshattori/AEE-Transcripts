@@ -44,12 +44,34 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+function isSpan(node) {
+    return (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'span');
+}
+
+function isHighlightSpan(node) {
+    return (isSpan(node) && node.classList.contains('highlight'));
+}
+
+function isParagraph(node) {
+    return (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'p');
+}
+
 // Function to handle the highlighting process
 function markSelection() {
     console.log('Highlighting selection');
     let selection = window.getSelection();
     if (selection.rangeCount > 0) {
-        let range = selection.getRangeAt(0);  // Save the selected range
+        let range = selection.getRangeAt(0);
+        // To avoid nested or overlapping highlights, check if the selected range is single node
+        if (range.startContainer !== range.endContainer || range.startContainer.nodeType != Node.TEXT_NODE) {
+            alert('Overlapping or nested highlights are not allowed.');
+            return;
+        }
+        // Check if the selected range is already highlighted
+        if (isHighlightSpan(range.startContainer.parentElement)) {
+            alert('Selected text is already highlighted.');
+            return;
+        }
         range = trimRange(range); // Trim the range
         if (range) {
             // Create a new span element
@@ -91,59 +113,73 @@ function trimRange(range) {
 }
 
 function unmarkSelection() {
-    isSpan = node => node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'span';
-    isHighlightSpan = node => isSpan(node) && node.classList.contains('highlight');
-
     let selection = window.getSelection();
     if (selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);  // Save the selected range
-        let parent = range.commonAncestorContainer;
-        if (!isHighlightSpan(parent)) {
-            parent = range.commonAncestorContainer.parentElement;
-            if (!isHighlightSpan(parent)) {
+        let range = selection.getRangeAt(0);
+        // NOTE: In Mobile Chrome, when you select text, it goes to the endContainer, and the startContainer
+        // points to the previous text, with the startOffset at the end of the previous text.
+        // If there is no previous text, startContainer === endContainer.
+        if (!isHighlightSpan(range.endContainer.parentElement)) {
+            alert(`Selected text is not highlighted: "${range.toString()}"`);
+            return;
+        }
+        let span = range.endContainer.parentElement;
+        if (range.startContainer !== range.endContainer) {
+            let start = range.startContainer;
+            if (start.nodeType !== Node.TEXT_NODE || start.textContent.length !== range.startOffset) {
+                alert(`Selected wrong range: "${range.toString()}"`);
                 return;
             }
         }
-        parent.classList.remove('highlight');
-
-        let grandParent = parent.parentNode;
-        let children = Array.from(grandParent.childNodes);
-        let newContent = document.createDocumentFragment();
-        let previousNode = null;
-
-        children.forEach(child => {
-            if (isSpan(child) && child.classList.length === 0) {
-                // If the child is an empty span, merge its first text with the previous text node
-                firstIndex = 0
-                if (child.firstChild.nodeType === Node.TEXT_NODE) {
-                    if (previousNode && previousNode.nodeType === Node.TEXT_NODE) {
-                        previousNode.textContent += child.firstChild.textContent;
-                        firstIndex = 1;
-                    }
-                }
-                for (let i = firstIndex; i < child.childNodes.length; i++) {
-                    newContent.appendChild(child.childNodes[i]);
-                    previousNode = child.childNodes[i];
-                }
-            } else if (child.nodeType === Node.TEXT_NODE) {
-                // If the child is a text node, merge it with the previous text node if possible
-                if (previousNode && previousNode.nodeType === Node.TEXT_NODE) {
-                    previousNode.textContent += child.textContent;
-                } else {
-                    newContent.appendChild(child);
-                    previousNode = child;
-                }
-            } else {
-                // Otherwise, just append the node
-                newContent.appendChild(child);
-                previousNode = child;
-            }
-        });
-
-        while (grandParent.firstChild) {
-            grandParent.removeChild(grandParent.firstChild);
+        let parent = span.parentElement;
+        if (!isParagraph(parent)) {
+            alert(`Unexpected parent: "${parent.outerHTML}"`);
+            return;
         }
-        grandParent.appendChild(newContent);
+        span.classList.remove('highlight');
+
+        // Remove spans with empty classess
+        content = parent.innerHTML
+        newContent = content.replace(/<span class="">(.*?)<\/span>/g, '$1');
+        parent.innerHTML = newContent;
+
+        // let newContent = document.createDocumentFragment();
+        // let previousNode = null;
+
+        // children.forEach(child => {
+        //     if (isSpan(child) && child.classList.length === 0) {
+        //         // If the child is an empty span, merge its first text with the previous text node
+        //         firstIndex = 0
+        //         if (child.firstChild.nodeType === Node.TEXT_NODE) {
+        //             if (previousNode && previousNode.nodeType === Node.TEXT_NODE) {
+        //                 previousNode.textContent += child.firstChild.textContent;
+        //                 previousNode = child.firstChild;
+        //                 firstIndex = 1;
+        //             }
+        //         }
+        //         for (let i = firstIndex; i < child.childNodes.length; i++) {
+        //             newContent.appendChild(child.childNodes[i]);
+        //             previousNode = child.childNodes[i];
+        //         }
+        //     } else if (child.nodeType === Node.TEXT_NODE) {
+        //         // If the child is a text node, merge it with the previous text node if possible
+        //         if (previousNode && previousNode.nodeType === Node.TEXT_NODE) {
+        //             previousNode.textContent += child.textContent;
+        //         } else {
+        //             newContent.appendChild(child);
+        //             previousNode = child;
+        //         }
+        //     } else {
+        //         // Otherwise, just append the node
+        //         newContent.appendChild(child);
+        //         previousNode = child;
+        //     }
+        // });
+
+        // while (grandParent.firstChild) {
+        //     grandParent.removeChild(grandParent.firstChild);
+        // }
+        // grandParent.appendChild(newContent);
 
         saveHighlights();
     }
