@@ -27,20 +27,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedScrollPosition) {
         window.scrollTo(0, parseInt(savedScrollPosition, 10));
     }
-    document.querySelector('#mark-button').addEventListener('touchstart', (event) => {                                                                                                        
-        event.preventDefault();
-        markSelection();                                                                                                                                                                          
-    });
-    document.querySelector('#unmark-button').addEventListener('touchstart', (event) => {
-        event.preventDefault();
-        unmarkSelection();
-    });
+    document.querySelector('#mark-button').addEventListener('touchstart', onMarkSelection);
+    document.querySelector('#unmark-button').addEventListener('touchstart', onUnmarkSelection);
 });
 
 // Save scroll position when the page is hidden
 document.addEventListener('visibilitychange', () => {
+    console.log('visibilitychange', document.visibilityState)
     if (document.visibilityState === 'hidden') {
         savePosition();
+    } else if (document.visibilityState === 'visible') {
+        // Re-register event handlers because it seems it doesn't work after sleep in mobile
+        markButton = document.querySelector('#mark-button')
+        markButton.removeEventListener('touchstart', onMarkSelection);
+        markButton.addEventListener('touchstart', onMarkSelection);
+        unmarkButton = document.querySelector('#unmark-button');
+        unmarkButton.removeEventListener('touchstart', onUnmarkSelection);
+        unmarkButton.addEventListener('touchstart', onUnmarkSelection);
     }
 });
 document.addEventListener('pagehide', (event) => {
@@ -69,7 +72,8 @@ function isParagraph(node) {
 }
 
 // Function to handle the highlighting process
-function markSelection() {
+function onMarkSelection(event) {
+    event.preventDefault(); // Prevent the default action
     console.log('Highlighting selection');
     let selection = window.getSelection();
     if (selection.rangeCount > 0) {
@@ -124,7 +128,8 @@ function trimRange(range) {
     return newRange;
 }
 
-function unmarkSelection() {
+function onUnmarkSelection(event) {
+    event.preventDefault();
     let selection = window.getSelection();
     if (selection.rangeCount > 0) {
         let range = selection.getRangeAt(0);
