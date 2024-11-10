@@ -347,7 +347,8 @@ function applyHighlights(records) {
 }
 
 function exportMarkedText() {
-    let highlights = document.querySelectorAll('.highlight');
+    const title = document.title.replace(/ /g, '_');
+    const highlights = JSON.parse(localStorage.getItem(storageKey) || '[]');
     if (highlights.length === 0) {
         showAlert('No highlighted text to export.');
         return;
@@ -355,15 +356,21 @@ function exportMarkedText() {
 
     let extractedText = ''
     for (let i = 0; i < highlights.length; i++) {
-        // Replace <br> with newline
-        extractedText += highlights[i].innerHTML.replace(/<br>/g, '\n') + '\n';
+        const record = highlights[i];
+        highlightedText = record.text.replace(/<br>/g, '\n');
+        paragraphText = record.paragraph.slice(0, record.offset)
+        paragraphText += `**${highlightedText}**`
+        paragraphText += record.paragraph.slice(record.offset + record.text.length)
+        paragraphText = paragraphText.replace(/<br>/g, '\n');
+        extractedText += `Text: ${record.text}\n`
+        extractedText += `Paragraph: ${paragraphText}\n\n`;
     }
 
     // Create a Blob from the bulleted list
     let blob = new Blob([extractedText], { type: 'text/plain' });
     let link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = 'highlighted_text.txt';
+    link.download = `${title}.txt`; 
 
     // Trigger the download
     link.click();

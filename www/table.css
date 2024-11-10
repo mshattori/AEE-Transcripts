@@ -1,0 +1,16 @@
+.comment {
+    background-color: #f5f5f5;
+}
+.synonym, .note {
+    font-size: smaller;
+    color: grey;
+}
+.synonym td, .note td {
+    padding: 8px 12px;
+}
+.uk-table th, .uk-table td {
+    border-right: 1px solid #ddd;
+}
+.uk-table th:last-child, .uk-table td:last-child {
+    border-right: none;
+}
