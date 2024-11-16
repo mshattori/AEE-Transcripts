@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="highlight.css" />
     <script src="uikit-3.21.12/js/uikit.min.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script src="footer.js"></script>
 </head>
 <body>
     <div class="content"><h1>AEE 2305: Since When? How to Use Time Phrases in English</h1>
@@ -364,9 +365,12 @@
 <p>Go to allearsenglish.com forward slash fluency score.</p>
 <p>And if you believe in connection, not perfection, then hit subscribe now to make sure you don't miss anything.</p>
 <p>See you next time.</p></div>
+    <div class="footer">
+        <span id="scrollPercentage">0%</span>
+    </div>
     <div class="fixed-buttons">
-        <button id="mark-button" onclick="onMarkSelection(event)">Mark Text</button>
-        <button id="unmark-button" onclick="onUnmarkSelection(event)">Unmark Text</button>
+        <button id="mark-button">Mark Text</button>
+        <button id="unmark-button">Unmark Text</button>
         <button onclick="exportMarkedText()">Export Marked Text</button>
     </div>
     <script src="highlight.js"></script>

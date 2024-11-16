@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="highlight.css" />
     <script src="uikit-3.21.12/js/uikit.min.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script src="footer.js"></script>
 </head>
 <body>
     <div class="content"><h1>AEE: Avoid This Business English Question</h1>
@@ -366,9 +367,12 @@
 <p>See you next time.</p>
 <h2>Part-21</h2>
 <p>日本経済新聞社の新メディア ミニつばい日経 ニュースがわかる体験を1日3分で これなら続けられる ミニつばい日経 今なら2ヶ月無料 ぜひお試しください</p></div>
+    <div class="footer">
+        <span id="scrollPercentage">0%</span>
+    </div>
     <div class="fixed-buttons">
-        <button id="mark-button" onclick="onMarkSelection(event)">Mark Text</button>
-        <button id="unmark-button" onclick="onUnmarkSelection(event)">Unmark Text</button>
+        <button id="mark-button">Mark Text</button>
+        <button id="unmark-button">Unmark Text</button>
         <button onclick="exportMarkedText()">Export Marked Text</button>
     </div>
     <script src="highlight.js"></script>

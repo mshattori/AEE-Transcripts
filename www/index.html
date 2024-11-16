@@ -122,6 +122,16 @@
             if (secretKey) document.getElementById('secret-key').value = secretKey
             if (bucketName) document.getElementById('bucket-name').value = bucketName 
             if (region) document.getElementById('region').value = region
+
+            anchors = document.querySelectorAll('table > tbody > tr > td > a');
+            anchors.forEach(elem => {
+                scrollPercentageKey = new URL(elem.href).pathname.slice(1) + '/scroll-percentage';
+                scrollPercentage = localStorage.getItem(scrollPercentageKey)
+                if (scrollPercentage) {
+                    elem.textContent += ` (${scrollPercentage}%)`
+                }
+            });
+
         });
 
         document.getElementById('s3-settings-form').addEventListener('submit', function(event) {

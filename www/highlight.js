@@ -1,6 +1,7 @@
-const uniqueId = window.location.pathname.slice(1) // Skip the first slash and replace all the remaining slashes.
+const uniqueId = window.location.pathname.slice(1) // Skip the first slash
 const storageKey = `${uniqueId}/highlights`; // Namespace by document path
 const scrollPositionKey = `${uniqueId}/scroll-position`;
+const scrollPercentageKey = `${uniqueId}/scroll-percentage`;
 
 let useS3Storage = false;
 let bucketName = '';
@@ -27,23 +28,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedScrollPosition) {
         window.scrollTo(0, parseInt(savedScrollPosition, 10));
     }
-    document.querySelector('#mark-button').addEventListener('touchstart', onMarkSelection);
-    document.querySelector('#unmark-button').addEventListener('touchstart', onUnmarkSelection);
+    const markButton = document.querySelector('#mark-button');
+    const unmarkButton = document.querySelector('#unmark-button');
+
+    if (isTouchDevice()) {
+        markButton.addEventListener('touchstart', onMarkSelection);
+        unmarkButton.addEventListener('touchstart', onUnmarkSelection);
+    } else {
+        markButton.addEventListener('click', onMarkSelection);
+        unmarkButton.addEventListener('click', onUnmarkSelection);
+    }
 });
+
+function isTouchDevice() {
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+} 
+
+function resetTouchEventListeners() {
+    const markButton = document.querySelector('#mark-button');
+    const unmarkButton = document.querySelector('#unmark-button');
+
+    markButton?.removeEventListener('touchstart', onMarkSelection);
+    markButton?.addEventListener('touchstart', onMarkSelection);
+    
+    unmarkButton?.removeEventListener('touchstart', onUnmarkSelection);
+    unmarkButton?.addEventListener('touchstart', onUnmarkSelection);
+};
 
 // Save scroll position when the page is hidden
 document.addEventListener('visibilitychange', () => {
-    console.log('visibilitychange', document.visibilityState)
-    if (document.visibilityState === 'hidden') {
-        savePosition();
-    } else if (document.visibilityState === 'visible') {
-        // Re-register event handlers because it seems it doesn't work after sleep in mobile
-        markButton = document.querySelector('#mark-button')
-        markButton.removeEventListener('touchstart', onMarkSelection);
-        markButton.addEventListener('touchstart', onMarkSelection);
-        unmarkButton = document.querySelector('#unmark-button');
-        unmarkButton.removeEventListener('touchstart', onUnmarkSelection);
-        unmarkButton.addEventListener('touchstart', onUnmarkSelection);
+    const visibilityState = document.visibilityState;
+
+    console.log('visibilitychange', visibilityState)
+
+    switch (visibilityState) {
+        case 'hidden':
+            savePosition();
+            break;
+        case 'visible':
+            resetTouchEventListeners();
+            break;
     }
 });
 document.addEventListener('pagehide', (event) => {
@@ -57,6 +81,11 @@ document.addEventListener('beforeunload', (event) => {
 
 function savePosition() {
     localStorage.setItem(scrollPositionKey, window.scrollY);
+    // Save the scroll percentage
+    let scrollTop = window.scrollY || document.documentElement.scrollTop;
+    let docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    let scrolled = (scrollTop / docHeight) * 100;
+    localStorage.setItem(scrollPercentageKey, scrolled.toFixed(0));
 }
 
 function isSpan(node) {
@@ -74,7 +103,7 @@ function isParagraph(node) {
 // Function to handle the highlighting process
 function onMarkSelection(event) {
     event.preventDefault(); // Prevent the default action
-    console.log('Highlighting selection');
+    console.log(`Highlighting selection: ${event.type}`); ;
     let selection = window.getSelection();
     if (selection.rangeCount > 0) {
         let range = selection.getRangeAt(0);
@@ -97,6 +126,8 @@ function onMarkSelection(event) {
             range.surroundContents(span);
             saveHighlights();
         }
+    } else {
+        showAlert('No text selected.');
     }
 }
 

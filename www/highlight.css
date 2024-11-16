@@ -40,3 +40,17 @@ body {
 .fixed-buttons button:hover {
     background-color: #0056b3;
 }
+
+.footer {
+    background: rgba(255, 255, 255, 0.5);
+    position: fixed;
+    bottom: 50px; /* It must be the top of .fixed-buttons */
+    width: 100%;
+    text-align: right;
+    padding: 10px;
+    display: none; /* Hide initially */
+}
+
+.footer #scrollPercentage {
+    margin-right: 20px;
+}
