@@ -13,6 +13,7 @@
     <table class="uk-table uk-table-divider">
         <thead><tr><th>All Ears English Podcast</th></tr></thead>
 <tbody class="uk-table-striped">
+<tr><td><a href="aee__just_crickets_what_to_say_when_no_one_responds.html">AEE  Just Crickets What to Say When No One Responds</a></td></tr>
 <tr><td><a href="aee__how_to_tell_stories_like_a_c1_level_english_student_.html">AEE  How to Tell Stories Like a C1 Level English Student</a></td></tr>
 <tr><td><a href="aee_2305_since_when_how_to_use_time_phrases_in_english.html">AEE 2305 Since When How to Use Time Phrases in English</a></td></tr>
 <tr><td><a href="aee_2304_how_to_use_sports_pride_to_connect_in_english.html">AEE 2304 How to Use Sports Pride to Connect in English</a></td></tr>
@@ -122,16 +123,7 @@
             if (secretKey) document.getElementById('secret-key').value = secretKey
             if (bucketName) document.getElementById('bucket-name').value = bucketName 
             if (region) document.getElementById('region').value = region
-
-            anchors = document.querySelectorAll('table > tbody > tr > td > a');
-            anchors.forEach(elem => {
-                scrollPercentageKey = new URL(elem.href).pathname.slice(1) + '/scroll-percentage';
-                scrollPercentage = localStorage.getItem(scrollPercentageKey)
-                if (scrollPercentage) {
-                    elem.textContent += ` (${scrollPercentage}%)`
-                }
-            });
-
+            addProgressPercentage()
         });
 
         document.getElementById('s3-settings-form').addEventListener('submit', function(event) {
@@ -152,6 +144,26 @@
             // Close the modal
             UIkit.modal('#s3-modal').hide();
         });
+
+        document.addEventListener('visibilitychange', () => {
+            const visibilityState = document.visibilityState;
+            switch (visibilityState) {
+                case 'visible':
+                    addProgressPercentage();
+                    break;
+            }
+        });
+
+        function addProgressPercentage() {
+            anchors = document.querySelectorAll('table > tbody > tr > td > a');
+            anchors.forEach(elem => {
+                scrollPercentageKey = new URL(elem.href).pathname.slice(1) + '/scroll-percentage';
+                scrollPercentage = localStorage.getItem(scrollPercentageKey)
+                if (scrollPercentage) {
+                    elem.textContent = elem.textContent.replace(/ \(\d+%\)$/, '') + ` (${scrollPercentage}%)`;
+                }
+            });
+        }
     </script>
 </body>
 </html>

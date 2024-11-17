@@ -46,11 +46,21 @@ body {
     position: fixed;
     bottom: 50px; /* It must be the top of .fixed-buttons */
     width: 100%;
-    text-align: right;
-    padding: 10px;
+    text-align: left;
+    padding: 10px 0;
     display: none; /* Hide initially */
 }
 
 .footer #scrollPercentage {
+    float: right;
     margin-right: 20px;
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.7rem;
+    }
+    .footer {
+        font-size: 0.9rem;
+    }
 }

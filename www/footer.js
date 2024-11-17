@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const footer = document.querySelector('.footer');
+    const footerTitle = document.querySelector('.footer #title');
+    footerTitle.textContent = document.title;
     const scrollPercentage = document.getElementById('scrollPercentage');
 
     window.addEventListener('scroll', function () {
