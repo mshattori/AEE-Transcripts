@@ -8,6 +8,12 @@ body {
     }
 }
 
+::highlight(text-highlights) {
+    background-color: yellow;
+    color: black;
+}
+
+/* Keep the old class for fallback browsers */
 .highlight {
     background-color: yellow;
     margin: 0px 3px; /* Add margin to separate adjacent highlights */
