@@ -36,16 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedScrollPosition) {
         window.scrollTo(0, parseInt(savedScrollPosition, 10));
     }
-    const markButton = document.querySelector('#mark-button');
-    const unmarkButton = document.querySelector('#unmark-button');
-
-    if (isTouchDevice()) {
-        markButton.addEventListener('touchstart', onMarkSelection);
-        unmarkButton.addEventListener('touchstart', onUnmarkSelection);
-    } else {
-        markButton.addEventListener('click', onMarkSelection);
-        unmarkButton.addEventListener('click', onUnmarkSelection);
-    }
+    bindButtonListeners();
 });
 
 function initializeHighlights() {
@@ -58,17 +49,30 @@ function initializeHighlights() {
 
 function isTouchDevice() {
     return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-} 
+}
 
-function resetTouchEventListeners() {
+let lastTouchTime = 0;
+
+function bindButtonListeners() {
     const markButton = document.querySelector('#mark-button');
     const unmarkButton = document.querySelector('#unmark-button');
 
-    markButton?.removeEventListener('touchstart', onMarkSelection);
-    markButton?.addEventListener('touchstart', onMarkSelection);
-    
-    unmarkButton?.removeEventListener('touchstart', onUnmarkSelection);
-    unmarkButton?.addEventListener('touchstart', onUnmarkSelection);
+    if (!markButton || !unmarkButton) {
+        return;
+    }
+
+    markButton.removeEventListener('click', onMarkSelection);
+    markButton.removeEventListener('touchstart', onMarkSelection);
+    unmarkButton.removeEventListener('click', onUnmarkSelection);
+    unmarkButton.removeEventListener('touchstart', onUnmarkSelection);
+
+    markButton.addEventListener('click', onMarkSelection);
+    unmarkButton.addEventListener('click', onUnmarkSelection);
+
+    if (isTouchDevice()) {
+        markButton.addEventListener('touchstart', onMarkSelection, { passive: false });
+        unmarkButton.addEventListener('touchstart', onUnmarkSelection, { passive: false });
+    }
 }
 
 // Save scroll position when the page is hidden
@@ -82,7 +86,7 @@ document.addEventListener('visibilitychange', () => {
             savePosition();
             break;
         case 'visible':
-            resetTouchEventListeners();
+            bindButtonListeners();
             break;
     }
 });
@@ -106,6 +110,11 @@ function savePosition() {
 
 // Function to handle the highlighting process
 function onMarkSelection(event) {
+    // Prevent duplicate events (touch triggers a synthetic click on some devices)
+    if (shouldIgnoreClick(event)) {
+        return;
+    }
+    updateLastTouchTime(event);
     event.preventDefault();
     console.log(`Highlighting selection: ${event.type}`);
     let selection = window.getSelection();
@@ -222,6 +231,11 @@ function rangesOverlap(range1, range2) {
 }
 
 function onUnmarkSelection(event) {
+    // Prevent duplicate events (touch triggers a synthetic click on some devices)
+    if (shouldIgnoreClick(event)) {
+        return;
+    }
+    updateLastTouchTime(event);
     event.preventDefault();
     let selection = window.getSelection();
     if (selection.rangeCount > 0) {
@@ -241,6 +255,19 @@ function onUnmarkSelection(event) {
             showAlert('Selected text is not highlighted.');
         }
     }
+}
+
+function updateLastTouchTime(event) {
+    if (event.type.startsWith('touch') || event.pointerType === 'touch') {
+        lastTouchTime = Date.now();
+    }
+}
+
+function shouldIgnoreClick(event) {
+    if (event.type !== 'click') {
+        return false;
+    }
+    return lastTouchTime !== 0 && Date.now() - lastTouchTime < 500;
 }
 
 function findOverlappingHighlight(range) {

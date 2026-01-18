@@ -1,3 +1,31 @@
+body {
+    margin: 0;
+    padding: 28px;
+    font-size: 18px;
+    line-height: 1.6;
+    background-color: #fff;
+    color: #111;
+}
+
+.index-container {
+    max-width: 900px;
+    margin: 0 auto 80px;
+    width: 100%;
+}
+
+.index-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 18px;
+        font-size: 1.1rem;
+    }
+}
+
 .comment {
     background-color: #f5f5f5;
 }
